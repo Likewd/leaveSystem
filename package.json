@@ -1,0 +1,18 @@
+{
+  "name": "leavesystem",
+  "version": "1.0.0",
+  "description": "for Leave management to control the in and out come of the resort",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "MuhmmaadAbdullah",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  }
+}

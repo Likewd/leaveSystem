@@ -68,6 +68,10 @@ const userSchema = new Schema({
         default: 'employee',  // Default value
         required: [true, 'designation is required']
     },
+    roles: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Role'
+    }],
     department: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',     // Reference to the department

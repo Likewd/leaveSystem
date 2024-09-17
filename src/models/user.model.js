@@ -75,7 +75,7 @@ const userSchema = new Schema({
     department: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Department',     // Reference to the department
-        required: true
+        // required: true
     },
     leaveHistory: [{
         type: mongoose.Schema.Types.ObjectId,

@@ -14,4 +14,9 @@ app.use(cors({
 }))
 app.use(cookieParser())
 
+
+// import router
+import permissionRouter from "./routes/permission.route.js"
+
+app.use("/api/v1/permission", permissionRouter)
 export default app

@@ -17,6 +17,9 @@ app.use(cookieParser())
 
 // import router
 import permissionRouter from "./routes/permission.route.js"
+import roleRouter from "./routes/role.route.js"
+
 
 app.use("/api/v1/permission", permissionRouter)
+app.use("/api/v1/role", roleRouter)
 export default app

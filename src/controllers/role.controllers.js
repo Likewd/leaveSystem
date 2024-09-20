@@ -6,7 +6,7 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 
 
 
-
+//Crete Role
 
 const createRole = asyncHandler(async (req, res) => {
     const { roleName, permissionIds } = req.body
@@ -53,6 +53,8 @@ const createRole = asyncHandler(async (req, res) => {
 
 )
 
+//get all Role
+
 const getAllRole = asyncHandler(async (req, res) => {
     const allRole = await Role.find({})
     if (allRole.length === 0) {
@@ -68,8 +70,35 @@ const getAllRole = asyncHandler(async (req, res) => {
         ))
 })
 
+// delete Role
+
+const deleteRole = asyncHandler(async (req, res) => {
+    const { _id } = req.params
+    if (!_id) {
+        throw new ApiError(
+            "Role is not select",
+            400,
+        )
+    }
+
+    const deleteRole = await Role.findByIdAndDelete(_id)
+    if (!deleteRole) {
+        throw new ApiError(
+            "Role not Found",
+            404
+        )
+    }
+    return res.status(200).json(
+        new ApiResponse(
+            "Role Deleted Successfully"
+            , 200,
+            deleteRole,
+        )
+    )
+})
 
 export {
     createRole,
-    getAllRole
+    getAllRole,
+    deleteRole
 }

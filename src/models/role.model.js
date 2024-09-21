@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 
 const roleSchema = new Schema({
-    roleName: {
+    name: {
         type: String,
         required: true,
-        unique: true
+        // unique: true
     }, // e.g., 'HOD', 'HR'
     permissions: [{
         type: mongoose.Schema.Types.ObjectId,

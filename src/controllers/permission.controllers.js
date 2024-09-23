@@ -11,18 +11,20 @@ const createPermission = asyncHandler(async (req, res) => {
     console.log(name);
 
     if (!name) {
-        throw new ApiError(
+        const error = new ApiError(
             "Permission Name required",
             400,
         )
+        return next(error)
     }
 
     const existedPermission = await Permission.findOne({ name })
     if (existedPermission) {
 
-        throw new ApiError(
+        return next(new ApiError(
             "permission already existed",
             409,
+        )
         )
 
     }
@@ -55,19 +57,24 @@ const getAllPermission = asyncHandler(async (req, res) => {
 const deletePermission = asyncHandler(async (req, res) => {
     const { _id } = req.params
     if (!_id) {
-        throw new ApiError(
+
+
+        return next(new ApiError(
             "Permission ID is required",
-            400,
+            409,
         )
+        )
+
     }
 
 
     const getPermissionToDelete = Permission.findById(_id)
     if (!getPermissionToDelete) {
-        throw new ApiError(
+        return next(new ApiError(
             "Permission Not Found",
-            400,
+            404,
         )
+     )
     }
 
     const deletePermission = await

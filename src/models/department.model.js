@@ -3,17 +3,15 @@ import mongoose, { Schema } from "mongoose";
 const departmentSchema = new Schema({
     name: {
         type: String,
-        required: true,
-        unique: true
+        required: [true, 'Department name is required'],
+        unique: true,
+        trim: true
     },  // Department name, e.g., HR, IT, Finance
     hod: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Employee'
+        ref: 'User',
+        default: null
     },  // Reference to the HOD (Head of Department)
-    employees: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Employee'
-    }],  // Array of employees in this department
 
 },
     {

@@ -175,5 +175,6 @@ export {
     getAllRole,
     deleteRole,
     updatePermission,
-    deletePermissionsInRole
+    deletePermissionsInRole,
+    
 }

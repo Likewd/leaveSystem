@@ -18,17 +18,19 @@ app.use(cookieParser())
 // import router
 import permissionRouter from "./routes/permission.route.js"
 import roleRouter from "./routes/role.route.js"
+import departmentRouter from "./routes/department.route.js"
 import globalErrorHandler from "./utils/globalErrorHandler.js"
 import { ApiError } from "./utils/ApiError.js"
 
 
 app.use("/api/v1/permission", permissionRouter)
 app.use("/api/v1/role", roleRouter)
+app.use("/api/v1/department", departmentRouter)
 app.all("*", (req, res, next) => {
     next(new ApiError(`This path ${req.originalUrl} isn't on this server!`, 404));
-    });
+});
 
-    // console.log(process.env.);
-    
+// console.log(process.env.);
+
 app.use(globalErrorHandler)
 export default app

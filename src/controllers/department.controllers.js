@@ -8,19 +8,20 @@ import { User } from "../models/user.model.js"
 
 
 
-const createDepartment = asyncHandler(async (req, res) => {
+const createDepartment = asyncHandler(async (req, res, next) => {
     const { name, hod } = req.body;
+    // Validate department name
     if (!name) {
         return next(new ApiError('Department name is required.', 400));
     }
-
+    // If HOD is provided, check if HOD exists
     if (hod) {
         const existingHod = await User.findById(hod);
         if (!existingHod) {
             return next(new ApiError('HOD user not found.', 404));
         }
     }
-
+    // Check if department already exists
     const existingDepartment = await Department.findOne({ name });
     if (existingDepartment) {
 
@@ -52,7 +53,8 @@ const createDepartment = asyncHandler(async (req, res) => {
 });
 
 const updateDepartmentHOD = asyncHandler(async (req, res, next) => {
-    const { departmentId, newHodId } = req.body;
+    const { newHodId } = req.body;
+    const { departmentId } = req.params;
 
     // Validate departmentId and newHodId
     if (!departmentId || !newHodId) {
@@ -72,7 +74,6 @@ const updateDepartmentHOD = asyncHandler(async (req, res, next) => {
             return next(new ApiError('New HOD user not found.', 404));
         }
     }
-    //Check if the User already HOD of Other department
 
 
     // Find the department by ID
@@ -94,15 +95,42 @@ const updateDepartmentHOD = asyncHandler(async (req, res, next) => {
         new ApiResponse("HOD updated successfully", 200, department)
     );
 });
-
-const deleteDepartment = asyncHandler(async (req, res) => {
+const updateDepartmentName = asyncHandler(async (req, res, next) => {
     const { _id } = req.params;
+    const { name } = req.body;
+    if (!_id || !name) {
+        return next(new ApiError('Both departmentId and Name are required.', 400));
+    }
+
+    const findName = await Department.findOne({ name })
+    if (!findName) {
+        return next(new ApiError('Department with this name already exists.', 400));
+
+    }
+    const updatedDepartment = await Department.findByIdAndUpdate(_id,
+        { name },
+        { new: true }
+    )
+    if (!updatedDepartment) {
+        return next(new ApiError('Department not found.', 404));
+    }
+
+    return res.status(200).
+        json(new ApiResponse("Department name updated successfully", 200, updatedDepartment));
+
+
+})
+const deleteDepartment = asyncHandler(async (req, res, next) => {
+    const { _id } = req.params;
+    // Check if department ID is provided
     if (!_id) {
         throw new ApiError(
             "Department is not select",
             400,
         )
     }
+
+    // Find department by ID
     const department = await Department.findOne({ _id })
     if (!department) {
         return next(new ApiError('Department not found.', 404));
@@ -121,15 +149,26 @@ const deleteDepartment = asyncHandler(async (req, res) => {
     )
 
 })
+const allDepartment = asyncHandler(async (req, res, next) => {
+    // Get all departments
+    const allDepartments = await Department.find({})
+    if (allDepartment.length === 0) {
+        throw new ApiError("No Role Found!")
+    }
 
-
-
-
+    return res.
+        status(200)
+        .json(new ApiResponse(
+            "Department fetched successfully",
+            200,
+            allDepartments
+        ))
+})
 export {
     createDepartment,
     deleteDepartment,
     updateDepartmentHOD,
-   
-
+    updateDepartmentName,
+    allDepartment
 }
 

@@ -1,4 +1,4 @@
-import { Department } from "../models/department.model";
+import { Department } from "../models/department.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -95,31 +95,65 @@ const updateDepartmentHOD = asyncHandler(async (req, res, next) => {
         new ApiResponse("HOD updated successfully", 200, department)
     );
 });
+
 const updateDepartmentName = asyncHandler(async (req, res, next) => {
     const { _id } = req.params;
-    const { name } = req.body;
-    if (!_id || !name) {
+    const { NewName } = req.body;
+
+    if (!_id || !NewName) {
         return next(new ApiError('Both departmentId and Name are required.', 400));
     }
 
-    const findName = await Department.findOne({ name })
-    if (!findName) {
+    // Check if a department with the new name already exists
+    const findName = await Department.findOne({ name: NewName });
+    if (findName) {
         return next(new ApiError('Department with this name already exists.', 400));
-
     }
-    const updatedDepartment = await Department.findByIdAndUpdate(_id,
-        { name },
+
+    // Update the department name
+    const updatedDepartment = await Department.findByIdAndUpdate(
+        _id,
+        { name: NewName },
         { new: true }
-    )
+    );
+
     if (!updatedDepartment) {
         return next(new ApiError('Department not found.', 404));
     }
 
-    return res.status(200).
-        json(new ApiResponse("Department name updated successfully", 200, updatedDepartment));
+    return res.status(200).json(new ApiResponse(
+        "Department name updated successfully",
+        200,
+        updatedDepartment
+    ));
+});
 
 
-})
+// const updateDepartmentName = asyncHandler(async (req, res, next) => {
+//     const { _id } = req.params;
+//     const { NewName } = req.body;
+//     if (!_id || !NewName) {
+//         return next(new ApiError('Both departmentId and Name are required.', 400));
+//     }
+
+//     const findName = await Department.findOne({ NewName })
+//     if (!findName) {
+//         return next(new ApiError('Department with this name already exists.', 400));
+
+//     }
+//     const updatedDepartment = await Department.findByIdAndUpdate(_id,
+//         { name: NewName },
+//         { new: true }
+//     )
+//     if (!updatedDepartment) {
+//         return next(new ApiError('Department not found.', 404));
+//     }
+
+//     return res.status(200).
+//         json(new ApiResponse("Department name updated successfully", 200, updatedDepartment));
+
+
+// })
 const deleteDepartment = asyncHandler(async (req, res, next) => {
     const { _id } = req.params;
     // Check if department ID is provided
@@ -139,12 +173,15 @@ const deleteDepartment = asyncHandler(async (req, res, next) => {
     await User.updateMany({ department: _id }, { $set: { department: null } });
 
     //Little confusion have before deleting the Department we have to assign new department who are associted with this department
-    const deletedepartment = await department.remove();
+    const deletedDepartment = await department.deleteOne();
+    if (!deletedDepartment) {
+        return next(new ApiError('Failed to delete department.', 500));
+    }
     return res.status(200).json(
         new ApiResponse(
             "Department Deleted Successfully"
             , 200,
-            deletedepartment,
+            deletedDepartment,
         )
     )
 
@@ -152,18 +189,20 @@ const deleteDepartment = asyncHandler(async (req, res, next) => {
 const allDepartment = asyncHandler(async (req, res, next) => {
     // Get all departments
     const allDepartments = await Department.find({})
-    if (allDepartment.length === 0) {
+    if (allDepartments.length === 0) {
         throw new ApiError("No Role Found!")
     }
 
-    return res.
-        status(200)
+    return res
+        .status(200)
         .json(new ApiResponse(
             "Department fetched successfully",
             200,
             allDepartments
         ))
 })
+
+//create function to get all department
 export {
     createDepartment,
     deleteDepartment,

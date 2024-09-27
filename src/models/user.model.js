@@ -19,6 +19,12 @@ const userSchema = new Schema({
         required: [true, 'email is required'],
         unique: true,
     },
+    profileImage: {
+        type: String,
+        required: [true, 'profileImage is required'],
+        default: null
+
+    },
     password: {
         type: String,
         required: [true, 'password is required'],
@@ -51,7 +57,7 @@ const userSchema = new Schema({
     dutyStatus: {
         type: String,
         enum: ['on-duty', 'off-duty', 'left'], // Tracks if the employee is on duty or has left
-        default: 'off-duty',  // Default to off-duty when created
+        default: 'on-duty',  // Default to off-duty when created
         required: true
     },
     joinDate: {

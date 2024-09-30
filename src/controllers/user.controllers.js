@@ -2,6 +2,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { requiredFields } from "../utils/RequiredFiled.js";
 
 // const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
@@ -55,13 +56,14 @@ const createUser = asyncHandler(async (req, res, next) => {
     } = req.body;
 
     await validateRequiredFields(req, next);
-    let profileImage = req?.file?.path;
-    if (!profileImage) {
+    let profileImagelocal = req?.file?.path;
+    if (!profileImagelocal) {
         return next(new ApiError(
             `profileImage is required and cannot be empty!`,
             400
         ));
     }
+    const profileImage = await uploadOnCloudinary(profileImagelocal);
 
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
@@ -86,7 +88,7 @@ const createUser = asyncHandler(async (req, res, next) => {
         designation,
         department,
         roles,
-        profileImage
+        profileImage: profileImage.url || null
     });
 
     if (!user) {

@@ -20,7 +20,7 @@ const authUser = asyncHandler(async (req, _, next) => {
         const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
         // Fetch user by ID and exclude the password field
-        const user = await User.findById(decodedToken?._id).select('-password');
+        const user = await User.findById(decodedToken?._id).select('-password').populate('roles');
 
         if (!user) {
             return next(new ApiError('Invalid access token! User not found.', 404));

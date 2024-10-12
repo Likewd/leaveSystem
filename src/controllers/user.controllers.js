@@ -6,7 +6,6 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { requiredFields } from "../utils/RequiredFiled.js";
 import { Department } from "../models/department.model.js";
-import cloudinary from "cloudinary";
 
 // const isNonEmptyString = (value) => typeof value === 'string' && value.trim().length > 0;
 // const isNonEmptyArray = (value) => Array.isArray(value) && value.length > 0;
@@ -255,76 +254,124 @@ const deleteUser = asyncHandler(async (req, res, next) => {
     }
 });
 
+// const updateUser = asyncHandler(async (req, res, next) => {
+//     const { _id } = req.params;
+//     let profileImagelocal = req?.file?.path;
+   
+
+//     // Start the transaction
+//     const session = await mongoose.startSession();
+//     session.startTransaction();
+
+//     try {
+
+//         if (profileImagelocal) {
+//             const oldImageDelete = req.user.profileImage;
+//             const publicId = oldImageDelete.split('/').pop().split('.')[0];
+//             console.log(publicId);
+
+//             await cloudinary.v2.uploader.destroy(publicId, (error, result) => {
+//                 if (error) {
+//                     return next(new ApiError('Failed to delete old profile image from Cloudinary', 500));
+//                 }
+//                 console.log('Old image deleted:', result);
+//             });
+
+//             // Upload the new image to Cloudinary
+//             const profileImage = await uploadOnCloudinary(profileImagelocal);
+//             console.log(profileImage);
+
+//             // Set the new image URL in the user's profileImage field
+//             req.body.profileImage = profileImage.url;
+
+
+//             console.log(req.body);
+
+
+//         }
+
+
+
+
+
+
+
+
+
+//         // Use findOneAndUpdate to directly update the user
+//         const updatedUser = await User.findOneAndUpdate(
+//             { _id },
+//             { $set: req.body },  // Only update allowed fields
+//             { new: true, runValidators: true, session }  // Return updated user and ensure validators run
+//         );
+
+//         if (!updatedUser) {
+//             await session.abortTransaction();  // Abort transaction if user not found
+//             return next(new ApiError('User not found!', 404));
+//         }
+
+//         // Commit transaction
+//         await session.commitTransaction();
+
+//         // Respond with success
+//         return res.status(200).json(new ApiResponse('User updated successfully', 200, updatedUser));
+
+//     } catch (error) {
+//         await session.abortTransaction();  // Rollback on error
+//         return next(new ApiError('Failed to update user', 500));
+//     } finally {
+//         session.endSession();  // Always end session
+//     }
+// });
+
+
+
 const updateUser = asyncHandler(async (req, res, next) => {
     const { _id } = req.params;
-    let profileImagelocal = req?.file?.path;
-    console.log("controller");
-    console.log(req?.user?.profileImage);
+    let profileImageLocalPath = req?.file?.path; // Path for uploaded image (if exists)
 
-    // Start the transaction
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    const session = await mongoose.startSession(); // Start the session
+    session.startTransaction(); // Begin the transaction
 
-    try {
+    // If there's a new profile image, delete the old one from Cloudinary and update the new one
+    if (profileImageLocalPath) {
+        const oldImageUrl = req.user.profileImage;  // Existing profile image URL
+        const publicId = oldImageUrl.split('/').pop().split('.')[0]; // Extract Cloudinary public ID
 
-        if (profileImagelocal) {
-            const oldImageDelete = req.user.profileImage;
-            const publicId = oldImageDelete.split('/').pop().split('.')[0];
-            console.log(publicId);
+        // Delete old image from Cloudinary
+        await cloudinary.v2.uploader.destroy(publicId);
 
-            await cloudinary.v2.uploader.destroy(publicId, (error, result) => {
-                if (error) {
-                    return next(new ApiError('Failed to delete old profile image from Cloudinary', 500));
-                }
-                console.log('Old image deleted:', result);
-            });
-
-            // Upload the new image to Cloudinary
-            const profileImage = await uploadOnCloudinary(profileImagelocal);
-            console.log(profileImage);
-
-            // Set the new image URL in the user's profileImage field
-            req.body.profileImage = profileImage.url;
-
-
-            console.log(req.body);
-
-
-        }
-
-
-
-
-
-
-
-
-
-        // Use findOneAndUpdate to directly update the user
-        const updatedUser = await User.findOneAndUpdate(
-            { _id },
-            { $set: req.body },  // Only update allowed fields
-            { new: true, runValidators: true, session }  // Return updated user and ensure validators run
-        );
-
-        if (!updatedUser) {
-            await session.abortTransaction();  // Abort transaction if user not found
-            return next(new ApiError('User not found!', 404));
-        }
-
-        // Commit transaction
-        await session.commitTransaction();
-
-        // Respond with success
-        return res.status(200).json(new ApiResponse('User updated successfully', 200, updatedUser));
-
-    } catch (error) {
-        await session.abortTransaction();  // Rollback on error
-        return next(new ApiError('Failed to update user', 500));
-    } finally {
-        session.endSession();  // Always end session
+        // Upload the new image to Cloudinary and update `req.body` with new image URL
+        const uploadedImage = await uploadOnCloudinary(profileImageLocalPath);
+        req.body.profileImage = uploadedImage.url;
     }
+
+    // Update user in the database
+    const updatedUser = await User.findOneAndUpdate(
+        { _id },
+        { $set: req.body },  // Only update allowed fields from request body
+        { new: true, runValidators: true, session } // Return updated user and run validators
+    );
+
+    // If user not found, abort the transaction and throw an error
+    if (!updatedUser) {
+        await session.abortTransaction();
+        throw new ApiError('User not found!', 404);
+    }
+
+    // Commit transaction if successful
+    await session.commitTransaction();
+
+    // Return the updated user in the response
+    return res.status(200).json(new ApiResponse('User updated successfully', 200, updatedUser));
+
+}).finally(async () => {
+    // Ensure session is ended, regardless of success or failure
+    await session.endSession();
 });
+
+
+
 
 const getAllUser = asyncHandler(async (req, res, next) => {
     const user = await User.find().populate('roles').populate('department');

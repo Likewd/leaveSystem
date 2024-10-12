@@ -20,7 +20,7 @@ const uploadOnCloudinary = async (localPath) => {
             }
         )
         console.log("files has been uploaded successfully", response.url);
-        
+
         // Check if the file exists before attempting to delete it
         if (fs.existsSync(localPath)) {
             fs.unlinkSync(localPath);  // remove files from the local server
@@ -43,4 +43,16 @@ const uploadOnCloudinary = async (localPath) => {
 
 }
 
-export { uploadOnCloudinary }
+
+// Helper function to delete image from Cloudinary
+const deleteImageFromCloudinary = async (publicId, next) => {
+    try {
+        const result = await cloudinary.uploader.destroy(publicId);
+        console.log('Old image deleted:', result);
+    } catch (error) {
+        console.error('Failed to delete old profile image:', error);
+        return next(new ApiError('Failed to delete old profile image from Cloudinary', 500));
+    }
+}
+
+export { uploadOnCloudinary, deleteImageFromCloudinary }

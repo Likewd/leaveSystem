@@ -14,7 +14,7 @@ router.route('/create_user').post(
     // authorizeRolesAndPermissions('createUser'),
     upload.single("profileImage"),
     createUser);
-router.route('/login_user').get(loginUser)
+router.route('/login_user').post(loginUser)
 
 // Protected Routes
 router.route('/update_password').patch(authUser, updatePassword);

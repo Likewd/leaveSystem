@@ -100,12 +100,6 @@ const createUser = asyncHandler(async (req, res, next) => {
         ));
     }
 
-    // const user = new User({
-    //     name, email, password, role, employNumber, gender, phoneNumber, 
-    //     passportNumber, designation, roles, department, profileImage
-    // });
-
-    // await user.save();
 
     return res.status(201).json(
         new ApiResponse("User created successfully", 201, user)
@@ -114,6 +108,8 @@ const createUser = asyncHandler(async (req, res, next) => {
 
 const loginUser = asyncHandler(async (req, res, next) => {
     const { employNumber, password } = req.body;
+    console.log(employNumber, password);
+    
 
     if (!employNumber || !password) {
         return next(new ApiError(
@@ -164,13 +160,14 @@ const loginUser = asyncHandler(async (req, res, next) => {
     // console.log(userLoggedIn.roles[0].permissions[0].name);
 
     return res.status(200)
-        .cookie("accessToken", accessToken, options)
-        .json(
-            new ApiResponse('Login successful', 200, {
-                userLoggedIn,
-                accessToken
-            })
-        );
+    .cookie("accessToken", accessToken, options)
+    .json({
+        message: 'Login successful',
+        status: 200,
+        userLoggedIn,   // directly include user data
+        accessToken     // directly include access token
+    });
+
 });
 
 const updatePassword = asyncHandler(async (req, res, next) => {
@@ -252,8 +249,7 @@ const deleteUser = asyncHandler(async (req, res, next) => {
         session.endSession();
         return next(new ApiError('Failed to delete user. Transaction aborted!', 500));
     }
-});
-
+})
 
 const updateUser = asyncHandler(async (req, res, next) => {
     const { _id } = req.params;
@@ -294,11 +290,7 @@ const updateUser = asyncHandler(async (req, res, next) => {
     // Return the updated user in the response
     return res.status(200).json(new ApiResponse('User updated successfully', 200, updatedUser));
 
-}).finally(async () => {
-    // Ensure session is ended, regardless of success or failure
-    await session.endSession();
-});
-
+})
 
 
 
